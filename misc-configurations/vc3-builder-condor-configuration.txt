@@ -1,0 +1,48 @@
+MANUAL CONFIGURATION
+
+To install condor and manually configure it, and run: 
+('$' means the shell's prompt.)
+
+$ ./vc3-builder --require condor
+(builder shell) $  cd ${VC3_ROOT_CONDOR}
+
+if the first time:
+for central manager:
+(builder shell) $  ./condor_install --local-dir=${VC3_CONDOR_LOCAL_DIR}   --type=manager  --central-manager=$(hostname -I)
+
+for schedd:
+(builder shell) $  ./condor_install --local-dir=${VC3_CONDOR_LOCAL_DIR} --type=submiter  --central-manager=SOMEWHERE.NET
+
+for startd:
+(builder shell) $  ./condor_install --local-dir=${VC3_CONDOR_LOCAL_DIR} --type=execute  --central-manager=SOMEWHERE.NET
+
+types can be combined, as --type manager,submiter,execute.
+
+run condor:
+(builder shell) $  condor_master -f -dyn (or whatever other options)
+
+For further reconfigurations, use 'condor_configure', instead of
+'condor_install'. In that case, DROP, the --local-dir argument.
+
+
+AUTOMATIC CONFIGURATION
+
+In this mode, the builder takes care of local-dir, and whether condor_install
+or condor_configure should be used. The idea is to pass any argument to
+condor_install with the VC3_CONDOR_CONFIG_OPTIONS:
+
+The VC3_CONDOR_CONFIG_OPTIONS is a little ugly. We may want to look for a
+better way pass the configurations.
+
+manager:
+$ export VC3_CONDOR_CONFIG_OPTIONS="--type=manager --central-manager=$(hostname -I)
+$ ./vc3-builder --require condor-configure -- condor_master -f -dyn
+
+schedd:
+$ export VC3_CONDOR_CONFIG_OPTIONS="--type=submiter --central-manager=SOMEWHERE.NET
+$ ./vc3-builder --require condor-configure -- condor_master -f -dyn
+
+startd:
+$ export VC3_CONDOR_CONFIG_OPTIONS="--type=execute --central-manager=SOMEWHERE.NET
+$ ./vc3-builder --require condor-configure -- condor_master -f -dyn
+
