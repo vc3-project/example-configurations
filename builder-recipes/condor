@@ -1,0 +1,14 @@
+
+startd:
+
+vc3-builder --require condor-configure -var VC3_CONDOR_CONFIG_OPTIONS='--type=execute --central-manager somewhere.net ..(other args)..' -- condor_master -dyn -f
+
+sched:
+
+vc3-builder --require condor-configure -var VC3_CONDOR_CONFIG_OPTIONS='--type=submit --central-manager somewhere.net ..(other args)..' -- condor_master -dyn -f
+
+all:
+
+vc3-builder --require condor-configure -var VC3_CONDOR_CONFIG_OPTIONS='--type=submit,manager,execute --central-manager $(hostname -i) ..(other args)..' -- condor_master -dyn -f
+
+
