@@ -11,4 +11,5 @@ all:
 
 vc3-builder --require condor-configure -var VC3_CONDOR_CONFIG_OPTIONS='--type=submit,manager,execute --central-manager $(hostname -i) ..(other args)..' -- condor_master -dyn -f
 
-
+all with condor pool password authentication:
+vc3-builder --require condor-configure -var VC3_CONDOR_CONFIG_OPTIONS='--type=submit,manager,execute --central-manager $(hostname -i) ..(other args)..' -var VC3_CONDOR_PASSWORD='/path/to/pool/password' -- condor_master -dyn -f
