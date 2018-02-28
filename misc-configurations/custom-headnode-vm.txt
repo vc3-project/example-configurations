@@ -1,0 +1,86 @@
+For the first part, I mostly followed the instructions at:
+
+https://docs.openstack.org/image-guide/centos-image.html
+
+* Creation of image
+
+Note that the values of RAM, DISK, and CPUS are here simply as a minimum. The
+actual headnode will probably have larger values.
+
+sudo su
+IMAGE_NAME=centos7-vc3.qcow2
+ISO=CentOS-7-x86_64-NetInstall-1708.iso
+VM_NAME=centos7-vc3
+RAM=512
+CPUS=1
+DISK=3G
+qemu-img create -f qcow2 ${IMAGE_NAME} ${DISK}
+
+* Launch the CentOS installer
+
+virt-install --virt-type kvm --name ${VM_NAME} --ram ${RAM} --vcpus ${CPUS} --disk ${IMAGE_NAME},format=qcow2 --network network=default --graphics vnc,listen=0.0.0.0 --noautoconsole --os-type=linux --os-variant=centos7.0 --location=${ISO}
+
+
+* Configure CentOS 
+
+Connect to the running VM with a vnc client (e.g. Remote Desktop Viewer in Fedora) to 0.0.0.0:5900
+
+On the installer form:
+
+- turn on eth0
+- set time to Etc/universal coordinated time
+- set repository to bay.uchicago.edu/centos/7/os/x86_64
+- set minimal installation
+- select virtio as disk
+- click install
+- set the root password, use a long hard to guess password in case we forget to remove it later.
+- create centos user, without password
+
+When reboot button appears, on a terminal (that is, not on the vnc):
+
+- virsh attach-disk --type cdrom --mode readonly ${VM_NAME} "" hda
+- virsh shutdown ${VM_NAME}
+- wait until the machine is gone (virsh list  is empty).
+- virsh start ${VM_NAME}
+
+Connect again with the vnc client to 0.0.0.0:5900
+
+- add centos to sudo: visudo, centos ALL=(ALL)  ALL
+- Do not allow centos user to login with a password: passwd --lock centos
+- yum install acpid
+- systemctl enable acpid    
+- yum install cloud-init
+- yum install cloud-utils-growpart
+- echo "NOZEROCONF=yes" >> /etc/sysconfig/network
+- Edit the /etc/default/grub file and configure the GRUB_CMDLINE_LINUX option. Delete the rhgb quiet and add console=tty0 console=ttyS0,115200n8 to the option.
+- grub2-mkconfig -o /boot/grub2/grub.cfg
+
+Install VC3 particulars:
+
+- yum install epel-release
+- yum install http://mirror.grid.uchicago.edu/pub/osg/3.4/el7/release/x86_64/osg-release-3.4-2.osg34.el7.noarch.rpm
+- yum update
+- yum install perl-core
+- yum install condor
+- yum install osg-oasis
+- yum install gcc gcc-c++ gcc-gfortran
+- yum install vim
+- poweroff
+
+On a terminal (that is, not on the vnc):
+
+virt-sysprep -d centos7-vc3  
+virsh undefine centos7-vc3
+
+Run the image to make sure everything looks fine:
+
+(Note that condor and cvmfs won't work, as we have not configured them yet.)
+
+virt-install --virt-type kvm --name ${VM_NAME} --ram ${RAM} --vcpus ${CPUS} --disk ${IMAGE_NAME},format=qcow2 --network network=default --graphics vnc,listen=0.0.0.0 --noautoconsole --os-type=linux --os-variant=centos7.0 --import
+
+Login as root, and if everything looks fine lock the use of password for root. After this, the only way to login is with an ssh key for the centos user which will be copied by cloud-init:
+
+- passwd --lock root
+
+The image is ready at ${IMAGE_NAME}, and can be uploaded to openstack.
+
