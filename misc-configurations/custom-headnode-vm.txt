@@ -55,6 +55,10 @@ Connect again with the vnc client to 0.0.0.0:5900
 - Edit the /etc/default/grub file and configure the GRUB_CMDLINE_LINUX option. Delete the rhgb quiet and add console=tty0 console=ttyS0,115200n8 to the option.
 - grub2-mkconfig -o /boot/grub2/grub.cfg
 
+Turn off firewall, as the vm will be using the one from openstack:
+
+- systemctl disable firewalld
+
 Install VC3 particulars:
 
 - yum install epel-release
@@ -64,6 +68,7 @@ Install VC3 particulars:
 - yum install condor
 - yum install osg-oasis
 - yum install gcc gcc-c++ gcc-gfortran
+- yum install wget
 - yum install vim
 - poweroff
 
