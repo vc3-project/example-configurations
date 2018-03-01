@@ -74,18 +74,23 @@ Install VC3 particulars:
 
 On a terminal (that is, not on the vnc):
 
-virt-sysprep -d centos7-vc3  
-virsh undefine centos7-vc3
+- virt-sysprep -d centos7-vc3  
+- virsh undefine centos7-vc3
+
+Copy the image to another file, so that when we disable the root password we
+can still fix things in case of errors:
+
+- copy ${IMAGE_NAME} final_${IMAGE_NAME}
 
 Run the image to make sure everything looks fine:
 
 (Note that condor and cvmfs won't work, as we have not configured them yet.)
 
-virt-install --virt-type kvm --name ${VM_NAME} --ram ${RAM} --vcpus ${CPUS} --disk ${IMAGE_NAME},format=qcow2 --network network=default --graphics vnc,listen=0.0.0.0 --noautoconsole --os-type=linux --os-variant=centos7.0 --import
+- virt-install --virt-type kvm --name ${VM_NAME} --ram ${RAM} --vcpus ${CPUS} --disk final_${IMAGE_NAME},format=qcow2 --network network=default --graphics vnc,listen=0.0.0.0 --noautoconsole --os-type=linux --os-variant=centos7.0 --import
 
 Login as root, and if everything looks fine lock the use of password for root. After this, the only way to login is with an ssh key for the centos user which will be copied by cloud-init:
 
 - passwd --lock root
 
-The image is ready at ${IMAGE_NAME}, and can be uploaded to openstack.
+The image is ready at final_${IMAGE_NAME}, and can be uploaded to openstack.
 
