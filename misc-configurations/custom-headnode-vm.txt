@@ -33,8 +33,8 @@ On the installer form:
 - set minimal installation
 - select virtio as disk
 - click install
-- set the root password, use a long hard to guess password in case we forget to remove it later.
-- create centos user, without password
+- set the root password
+- create vc3admin user without password
 
 When reboot button appears, on a terminal (that is, not on the vnc):
 
@@ -45,8 +45,8 @@ When reboot button appears, on a terminal (that is, not on the vnc):
 
 Connect again with the vnc client to 0.0.0.0:5900
 
-- add centos to sudo: visudo, centos ALL=(ALL)  ALL
-- Do not allow centos user to login with a password: passwd --lock centos
+- add vc3admin to sudo: visudo, vc3admin ALL=(ALL)  ALL
+- Do not allow vc3admin user to login with a password: passwd --lock vc3admin
 - yum install acpid
 - systemctl enable acpid    
 - yum install cloud-init
@@ -61,6 +61,9 @@ Turn off firewall, as the vm will be using the one from openstack:
 
 Install VC3 particulars:
 
+Use vc3admin instead of centos user:
+
+- Edit /etc/cloud/cloud.cfg  and change system_info... default_user... - name: centos to vc3admin
 - yum install epel-release
 - yum install http://mirror.grid.uchicago.edu/pub/osg/3.4/el7/release/x86_64/osg-release-3.4-2.osg34.el7.noarch.rpm
 - yum update
@@ -88,7 +91,7 @@ Run the image to make sure everything looks fine:
 
 - virt-install --virt-type kvm --name ${VM_NAME} --ram ${RAM} --vcpus ${CPUS} --disk final_${IMAGE_NAME},format=qcow2 --network network=default --graphics vnc,listen=0.0.0.0 --noautoconsole --os-type=linux --os-variant=centos7.0 --import
 
-Login as root, and if everything looks fine lock the use of password for root. After this, the only way to login is with an ssh key for the centos user which will be copied by cloud-init:
+Login as root, and if everything looks fine lock the use of password for root. After this, the only way to login is with an ssh key for the vc3admin user which will be copied by cloud-init:
 
 - passwd --lock root
 
