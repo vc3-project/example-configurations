@@ -27,73 +27,80 @@ Connect to the running VM with a vnc client (e.g. Remote Desktop Viewer in Fedor
 
 On the installer form:
 
-- turn on eth0
-- set time to Etc/universal coordinated time
-- set repository to bay.uchicago.edu/centos/7/os/x86_64
-- set minimal installation
-- select virtio as disk
-- click install
-- set the root password
-- create vc3admin user without password
+turn on eth0 in Network and Hostname
+set time to Etc/universal coordinated time
+set repository to bay.uchicago.edu/centos/7/os/x86_64
+set minimal installation
+select virtio as disk
+click install
+set the root password
+create vc3admin user without password, make it an administrator
 
 When reboot button appears, on a terminal (that is, not on the vnc):
 
-- virsh attach-disk --type cdrom --mode readonly ${VM_NAME} "" hda
-- virsh shutdown ${VM_NAME}
-- wait until the machine is gone (virsh list  is empty).
-- virsh start ${VM_NAME}
+virsh attach-disk --type cdrom --mode readonly ${VM_NAME} "" hda
+virsh shutdown ${VM_NAME}
+wait until the machine is gone (virsh list  is empty).
+virsh start ${VM_NAME}
 
 Connect again with the vnc client to 0.0.0.0:5900
 
-- add vc3admin to sudo: visudo, vc3admin ALL=(ALL)  ALL
-- Do not allow vc3admin user to login with a password: passwd --lock vc3admin
-- yum install acpid
-- systemctl enable acpid    
-- yum install cloud-init
-- yum install cloud-utils-growpart
-- echo "NOZEROCONF=yes" >> /etc/sysconfig/network
-- Edit the /etc/default/grub file and configure the GRUB_CMDLINE_LINUX option. Delete the rhgb quiet and add console=tty0 console=ttyS0,115200n8 to the option.
-- grub2-mkconfig -o /boot/grub2/grub.cfg
+login as root
+if vc3admin was not made an administrator above, add vc3admin to sudo: visudo, vc3admin ALL=(ALL)  ALL
+Do not allow vc3admin user to login with a password: passwd --lock vc3admin
+yum install acpid
+systemctl enable acpid    
+yum install cloud-init
+yum install cloud-utils-growpart
+echo "NOZEROCONF=yes" >> /etc/sysconfig/network
+Edit the /etc/default/grub file and configure the GRUB_CMDLINE_LINUX option. Delete 'rhgb quiet' and add 'console=tty0 console=ttyS0,115200n8'
+grub2-mkconfig -o /boot/grub2/grub.cfg
 
 Turn off firewall, as the vm will be using the one from openstack:
 
-- systemctl disable firewalld
+systemctl disable firewalld
 
 Install VC3 particulars:
 
 Use vc3admin instead of centos user:
 
-- Edit /etc/cloud/cloud.cfg  and change system_info... default_user... - name: centos to vc3admin
-- yum install epel-release
-- yum install http://mirror.grid.uchicago.edu/pub/osg/3.4/el7/release/x86_64/osg-release-3.4-2.osg34.el7.noarch.rpm
-- yum update
-- yum install perl-core
-- yum install condor
-- yum install osg-oasis
-- yum install gcc gcc-c++ gcc-gfortran
-- yum install wget
-- yum install vim
-- poweroff
+Edit /etc/cloud/cloud.cfg  and change system_info... default_user... - name: centos to vc3admin
+yum install epel-release
+yum install http://mirror.grid.uchicago.edu/pub/osg/3.4/el7/release/x86_64/osg-release-3.4-2.osg34.el7.noarch.rpm
+yum update
+yum install perl-core
+yum install condor
+yum install osg-oasis
+yum install gcc gcc-c++ gcc-gfortran
+yum install wget
+yum install rsync
+yum install vim
+poweroff
 
 On a terminal (that is, not on the vnc):
 
-- virt-sysprep -d centos7-vc3  
-- virsh undefine centos7-vc3
+virt-sysprep -d centos7-vc3  
+virsh undefine centos7-vc3
 
 Copy the image to another file, so that when we disable the root password we
 can still fix things in case of errors:
 
-- copy ${IMAGE_NAME} final_${IMAGE_NAME}
+cp ${IMAGE_NAME} final_${IMAGE_NAME}
 
 Run the image to make sure everything looks fine:
 
 (Note that condor and cvmfs won't work, as we have not configured them yet.)
 
-- virt-install --virt-type kvm --name ${VM_NAME} --ram ${RAM} --vcpus ${CPUS} --disk final_${IMAGE_NAME},format=qcow2 --network network=default --graphics vnc,listen=0.0.0.0 --noautoconsole --os-type=linux --os-variant=centos7.0 --import
+virt-install --virt-type kvm --name ${VM_NAME} --ram ${RAM} --vcpus ${CPUS} --disk final_${IMAGE_NAME},format=qcow2 --network network=default --graphics vnc,listen=0.0.0.0 --noautoconsole --os-type=linux --os-variant=centos7.0 --import
 
 Login as root, and if everything looks fine lock the use of password for root. After this, the only way to login is with an ssh key for the vc3admin user which will be copied by cloud-init:
 
-- passwd --lock root
+passwd --lock root
+poweroff
 
 The image is ready at final_${IMAGE_NAME}, and can be uploaded to openstack.
+
+virsh shutdown ${VM_NAME}
+virt-sysprep -d centos7-vc3  
+virsh undefine centos7-vc3
 
