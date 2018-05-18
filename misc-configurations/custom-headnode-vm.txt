@@ -68,6 +68,7 @@ Edit /etc/cloud/cloud.cfg  and change system_info... default_user... - name: cen
 yum install epel-release
 yum install http://mirror.grid.uchicago.edu/pub/osg/3.4/el7/release/x86_64/osg-release-3.4-2.osg34.el7.noarch.rpm
 yum update
+yum install openssl-devel
 yum install perl-core
 yum install condor
 yum install osg-oasis
