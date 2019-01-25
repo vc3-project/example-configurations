@@ -1,3 +1,6 @@
+THIS IS THE MANUAL WAY TO CREATE THE IMAGE.
+PLEASE USE INSTEAD custom-headnode-vm-kickstart.txt
+
 For the first part, I mostly followed the instructions at:
 
 https://docs.openstack.org/image-guide/centos-image.html
@@ -9,16 +12,16 @@ actual headnode will probably have larger values.
 
 sudo su
 IMAGE_NAME=centos7-vc3.qcow2
-ISO=CentOS-7-x86_64-NetInstall-1708.iso
+ISO=CentOS-7-x86_64-Minimal-1810.iso
 VM_NAME=centos7-vc3
 RAM=512
 CPUS=1
-DISK=3G
+DISK=10G
 qemu-img create -f qcow2 ${IMAGE_NAME} ${DISK}
 
 * Launch the CentOS installer
 
-virt-install --virt-type kvm --name ${VM_NAME} --ram ${RAM} --vcpus ${CPUS} --disk ${IMAGE_NAME},format=qcow2 --network network=default --graphics vnc,listen=0.0.0.0 --noautoconsole --os-type=linux --os-variant=centos7.0 --location=${ISO}
+virt-install --virt-type kvm --name ${VM_NAME} --ram ${RAM} --vcpus ${CPUS} --disk ${IMAGE_NAME},format=qcow2 --network network=default --graphics vnc,listen=0.0.0.0 --noautoconsole --os-type=linux --os-variant=centos7.0 --cdrom=${ISO}
 
 
 * Configure CentOS 
@@ -66,16 +69,20 @@ Use vc3admin instead of centos user:
 
 Edit /etc/cloud/cloud.cfg  and change system_info... default_user... - name: centos to vc3admin
 yum install epel-release
-yum install http://mirror.grid.uchicago.edu/pub/osg/3.4/el7/release/x86_64/osg-release-3.4-2.osg34.el7.noarch.rpm
+yum install http://mirror.grid.uchicago.edu/pub/osg/3.4/el7/release/x86_64/osg-release-3.4-4.osg34.el7.noarch.rpm
 yum update
 yum install openssl-devel
+yum install openssl-static
+yum install libssh2-devel
 yum install perl-core
 yum install condor
 yum install osg-oasis
 yum install gcc gcc-c++ gcc-gfortran
+yum install curl
 yum install wget
 yum install rsync
 yum install vim
+yum install python-devel
 poweroff
 
 On a terminal (that is, not on the vnc):

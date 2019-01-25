@@ -1,0 +1,35 @@
+* Creation of image
+
+Note that the values of RAM, and CPUS are here simply as a minimum. The actual
+headnode will probably have larger values.
+
+sudo su
+IMAGE_NAME=centos7-vc3.qcow2
+ISO=CentOS-7-x86_64-Minimal-1810.iso
+VM_NAME=centos7-vc3
+RAM=512
+CPUS=1
+DISK=25G
+qemu-img create -f qcow2 ${IMAGE_NAME} ${DISK}
+
+virt-install --virt-type kvm --name ${VM_NAME} --ram ${RAM} --vcpus ${CPUS} --disk ${IMAGE_NAME},format=qcow2 --network network=default --graphics vnc,listen=0.0.0.0 --noautoconsole --os-type=linux --os-variant=centos7.0 --location ${ISO} --initrd-inject ${PWD}/headnode-ks.cfg --extra-args "ks=file:/headnode-ks.cfg"
+
+Connect to the running VM with a vnc client (e.g. Remote Desktop Viewer in
+Fedora) to 0.0.0.0:5900 and watch the progress. When initial configuration
+ends:
+
+virsh start ${VM_NAME}
+
+Connect again with the vnc client to 0.0.0.0:5900
+
+login as root and make sure everything looks fine.
+(Note that condor and cvmfs won't work, as we have not configured them yet.)
+
+Then, on a terminal:
+
+virsh shutdown ${VM_NAME}
+virt-sysprep -d centos7-vc3  
+virsh undefine centos7-vc3
+
+The image is ready at ${IMAGE_NAME}, and can be uploaded to openstack.
+
